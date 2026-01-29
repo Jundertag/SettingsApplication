@@ -3,11 +3,8 @@ package com.jayden.settingsapplication.data.source
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.dataStore
-import com.google.protobuf.copy
 import com.jayden.settingsapplication.Settings
-import com.jayden.settingsapplication.copy
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 
 val Context.dataStore: DataStore<Settings> by dataStore(
     fileName = "settings.pb",
@@ -17,13 +14,9 @@ val Context.dataStore: DataStore<Settings> by dataStore(
 class SettingsDataStore(
     private val context: Context
 ) {
-    fun counterFlow(): Flow<Int> = context.dataStore.data.map { settings ->
-        settings.exampleCounter
-    }
+    fun settingsFlow(): Flow<Settings> = context.dataStore.data
 
-    suspend fun incrementCounter() {
-        context.dataStore.updateData { settings ->
-            settings.copy { exampleCounter += 1 }
-        }
+    suspend fun updateData(transform: ((Settings) -> Settings)) {
+        context.dataStore.updateData(transform)
     }
 }

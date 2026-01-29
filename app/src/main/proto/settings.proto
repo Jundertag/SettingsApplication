@@ -4,5 +4,5 @@ option java_package = "com.jayden.settingsapplication";
 option java_multiple_files = true;
 
 message Settings {
-  int32 example_counter = 1;
+  bool tracking = 1;
 }

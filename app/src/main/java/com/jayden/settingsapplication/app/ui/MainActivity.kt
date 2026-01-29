@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,10 +30,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jayden.settingsapplication.app.MainApplication
 import com.jayden.settingsapplication.app.viewmodel.MainViewModel
+import com.jayden.settingsapplication.copy
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 
 class MainActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels(
@@ -47,44 +51,28 @@ class MainActivity : AppCompatActivity() {
     }
     @Composable
     fun MainScreen() {
-        val exampleCounter by viewModel.counterFlow
-            .collectAsState(initial = 0)
-
-        ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-            val text = createRef()
-            val button = createRef()
-            Text(
-                text = "Counter $exampleCounter",
-                fontSize = 25.sp,
-                modifier = Modifier.constrainAs(text) {
-                    top.linkTo(parent.top)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                }
+        Row(modifier = Modifier.safeDrawingPadding()
+        ) {
+            val state by viewModel.settingsUiState.collectAsStateWithLifecycle()
+            SettingToggle(
+                title = "Allow tracking?",
+                state = state.tracking,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                onCheck = viewModel::setTracking
             )
-
-            Button(
-                onClick = { viewModel.incrementCounter() },
-                modifier = Modifier.constrainAs(button) {
-                    top.linkTo(text.bottom)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                }
-            ) {
-                Text("increment")
-            }
         }
+
     }
 
     @Composable
     fun SettingToggle(
         title: String,
+        state: Boolean,
         onCheck: ((Boolean) -> Unit)? = null,
         modifier: Modifier = Modifier,
-        initial: Boolean = false
     ) {
-        var state by remember { mutableStateOf(initial) }
 
         Card(modifier = modifier.fillMaxWidth()
         ) {
@@ -103,8 +91,7 @@ class MainActivity : AppCompatActivity() {
                 Switch(
                     checked = state,
                     onCheckedChange = {
-                        state = !state
-                        onCheck?.invoke(state)
+                        onCheck?.invoke(!state)
                     },
                     modifier = Modifier.constrainAs(switch) {
                         top.linkTo(parent.top)
@@ -124,39 +111,6 @@ class MainActivity : AppCompatActivity() {
                     end.linkTo(switch.start, 6.dp)
                     bottom.linkTo(parent.bottom)
                 })
-            }
-
-        }
-    }
-
-    @Preview(device = "id:pixel_9", showSystemUi = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO)
-    @Composable
-    fun PreviewCompose() {
-        val exampleCounter by MutableStateFlow(0).collectAsState()
-
-        ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-            val text = createRef()
-            val button = createRef()
-            Text(
-                text = "Counter $exampleCounter",
-                fontSize = 25.sp,
-                modifier = Modifier.constrainAs(text) {
-                    top.linkTo(parent.top)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                }
-            )
-
-            Button(
-                onClick = { viewModel.incrementCounter() },
-                modifier = Modifier.constrainAs(button) {
-                    top.linkTo(text.bottom)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                }
-            ) {
-                Text("increment")
             }
         }
     }
