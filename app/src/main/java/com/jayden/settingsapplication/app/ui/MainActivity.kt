@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.jayden.settingsapplication.app.MainApplication
 import com.jayden.settingsapplication.app.viewmodel.MainViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 class MainActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels(
@@ -74,66 +76,88 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-}
 
-@Composable
-fun SettingToggle(
-    title: String,
-    onCheck: ((Boolean) -> Unit)? = null,
-    modifier: Modifier = Modifier,
-    initial: Boolean = false
-) {
-    var state by remember { mutableStateOf(initial) }
-
-    Card(modifier = modifier.fillMaxWidth()
+    @Composable
+    fun SettingToggle(
+        title: String,
+        onCheck: ((Boolean) -> Unit)? = null,
+        modifier: Modifier = Modifier,
+        initial: Boolean = false
     ) {
-        ConstraintLayout(Modifier.fillMaxSize()) {
-            val (text, divider, switch) = createRefs()
+        var state by remember { mutableStateOf(initial) }
+
+        Card(modifier = modifier.fillMaxWidth()
+        ) {
+            ConstraintLayout(Modifier.fillMaxSize()) {
+                val (text, divider, switch) = createRefs()
+                Text(
+                    text = title,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.constrainAs(text) {
+                        top.linkTo(parent.top)
+                        start.linkTo(parent.start, 4.dp)
+                        bottom.linkTo(parent.bottom)
+                    }
+                )
+
+                Switch(
+                    checked = state,
+                    onCheckedChange = {
+                        state = !state
+                        onCheck?.invoke(state)
+                    },
+                    modifier = Modifier.constrainAs(switch) {
+                        top.linkTo(parent.top)
+                        end.linkTo(parent.end)
+                        bottom.linkTo(parent.bottom)
+                    },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = MaterialTheme.colorScheme.primary,
+                        checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.secondary,
+                        uncheckedTrackColor = MaterialTheme.colorScheme.secondaryContainer,
+                    )
+                )
+
+                VerticalDivider(modifier = Modifier.constrainAs(divider) {
+                    top.linkTo(parent.top)
+                    end.linkTo(switch.start, 6.dp)
+                    bottom.linkTo(parent.bottom)
+                })
+            }
+
+        }
+    }
+
+    @Preview(device = "id:pixel_9", showSystemUi = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO)
+    @Composable
+    fun PreviewCompose() {
+        val exampleCounter by MutableStateFlow(0).collectAsState()
+
+        ConstraintLayout(modifier = Modifier.fillMaxSize()) {
+            val text = createRef()
+            val button = createRef()
             Text(
-                text = title,
-                fontWeight = FontWeight.Bold,
+                text = "Counter $exampleCounter",
+                fontSize = 25.sp,
                 modifier = Modifier.constrainAs(text) {
                     top.linkTo(parent.top)
-                    start.linkTo(parent.start, 4.dp)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
                     bottom.linkTo(parent.bottom)
                 }
             )
 
-            Switch(
-                checked = state,
-                onCheckedChange = {
-                    state = !state
-                    onCheck?.invoke(state)
-                },
-                modifier = Modifier.constrainAs(switch) {
-                    top.linkTo(parent.top)
+            Button(
+                onClick = { viewModel.incrementCounter() },
+                modifier = Modifier.constrainAs(button) {
+                    top.linkTo(text.bottom)
+                    start.linkTo(parent.start)
                     end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = MaterialTheme.colorScheme.primary,
-                    checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                    uncheckedThumbColor = MaterialTheme.colorScheme.secondary,
-                    uncheckedTrackColor = MaterialTheme.colorScheme.secondaryContainer,
-                )
-            )
-
-            VerticalDivider(modifier = Modifier.constrainAs(divider) {
-                top.linkTo(parent.top)
-                end.linkTo(switch.start, 6.dp)
-                bottom.linkTo(parent.bottom)
-            })
+                }
+            ) {
+                Text("increment")
+            }
         }
-
     }
-}
-
-@Preview(device = "id:pixel_9", showSystemUi = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO)
-@Composable
-fun PreviewCompose() {
-    SettingToggle(
-        title = "this is a settings toggle please help me",
-        modifier = Modifier
-            .height(32.dp)
-    )
 }
